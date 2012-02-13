@@ -1,0 +1,59 @@
+9
+
+dir
+9
+svn+ssh://arao@ir.cis.udel.edu/home/arao/workspace/PyMathApp/src
+svn+ssh://arao@ir.cis.udel.edu/home/arao/workspace/PyMathApp
+
+
+
+2011-11-04T22:20:51.190189Z
+9
+ashwani
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+631e4ff6-0cbb-44c8-941e-e14b388ca652
+
+
+
+
+
+
+0
+
+classfiers
+dir
+
+classifiers
+dir
+
+data
+dir
+
+mainentry
+dir
+
+parsing
+dir
+
+text
+dir
+
+utility
+dir
+
+writer
+dir
+

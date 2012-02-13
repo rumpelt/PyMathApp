@@ -1,0 +1,45 @@
+'''
+Created on Nov 2, 2011
+
+@author: 801155602
+'''
+import csv
+import nltk
+from decimal import Decimal
+from utility import decimalroutines as dd
+class csvwriter():
+    def __init__(self,filename, delimter=',', quotechar= '\"', quoting=csv.QUOTE_MINIMAL ,openmode = 'w' ):
+        self.filename = filename
+        self.openmode = openmode
+        self.filehandle = open(filename, self.openmode)
+        self.writer = csv.writer(self.filehandle, delimiter =delimter, quotechar = quotechar ,quoting =quoting)
+    
+    def createwriter(self):
+        return None
+    
+    def closewriter(self):
+        self.filehandle.close()
+
+    def writerow(self, row):
+        self.writer.writerow(row)
+    
+    def testwriter(self):
+        freqdist = nltk.FreqDist()
+        freqdist.inc(('eu' , 'tu'))
+        freqdist.inc(('eu' , 'tu'))        
+        freqdist.inc(('eu' , 'tu'))        
+        freqdist.inc(('eu' , 'fu'))
+        freqdist.inc(('gu' , 'tu'))
+        freqdist.inc(('eu' , 'fu'))
+        freqdist.inc(('eu' , 'fu'))
+        freqdist.inc(('gu' , 'mu'))
+        freqdist.inc(('gu' , 'mu'))
+        dc = dd.decimalroutines()
+        for item in freqdist:
+            prob = freqdist.get(item) / freqdist.N()
+            op = list()
+            op.append(item)
+            op.append(dc.getstring(prob, Decimal('.000000001')))
+            self.writer.writerow(op)
+        self.writer.closewriter()
+    

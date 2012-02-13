@@ -1,0 +1,78 @@
+'''
+Created on Dec 8, 2011
+
+@author: 801155602
+'''
+from data import  personalrecord
+from decimal import Decimal
+import re
+def getrecordswithvaluegreaterthan(listpr, agelower , ageupper, threshold ,attribute ):
+    '''
+    return the personal records with value greater than or equal to threshold value for
+    the given attribute
+    '''
+    result = list()
+    for personalrecord in listpr:
+        
+        for timeattrs in personalrecord.getalltimeattribute():
+            if timeattrs.getage().compare(Decimal(agelower)) >= 0 and \
+            timeattrs.getage().compare(Decimal(ageupper)) <= 0:
+                bmip = timeattrs.getattribute(attribute)
+                if bmip is not None and bmip.compare(Decimal(threshold)) >= 0:
+                    result.append(personalrecord)
+                    break
+    return result
+
+def getrecordswithvaluelessthan(listpr, agelower , ageupper, threshold ,attribute ):
+    '''
+    return the personal records with value less than the threshold value for
+    the given attribute
+    '''
+    result = list()
+    for personalrecord in listpr:
+        for timeattrs in personalrecord.getalltimeattribute():
+            if timeattrs.getage().compare(Decimal(agelower)) >= 0 and \
+            timeattrs.getage().compare(Decimal(ageupper)) <= 0:
+                bmip = timeattrs.getattribute(attribute)
+                if bmip is not None and bmip.compare(Decimal(threshold)) < 0:
+                    result.append(personalrecord)
+                    break
+    return result
+
+
+def returnfeedtype(tokens):
+    if tokens is None:
+        return None
+    bottle = False
+    breast = False
+    for tok in tokens:
+        if not bottle and re.match('^bottl|^bf|formula|^enfa|^lipil|^iron|^isomil|^enf|^lacto|^similac|^prosobe', tok):
+            bottle = True
+        elif not breast and re.match('^breast' , tok):
+            breast = True
+    if bottle and breast:
+        return 'Breast and Bottle'
+    elif bottle:
+        return 'Bottle'
+    elif breast:
+        return 'Breast'
+    else:
+        return None
+def writefeedingvalue(writer, listpr,  lowage, upage):
+    for pr in listpr:
+        for timeattrs in pr.getalltimeattribute():
+            age = timeattrs.getage()
+            doc = timeattrs.getattribute('DOC')
+            value = None
+            if doc is not None:
+                value = returnfeedtype(doc.text.get('Feeding:'))
+            if age.compare(Decimal(lowage)) >= 0 and age.compare(Decimal(upage)) <= 0 and value is not None:
+                row = list()
+                row.append(str(pr.getgenericattribute('MRN')))                
+                row.append(str(pr.getgenericattribute('UID')))
+                row.append(str(age))
+                row.append(list(value))
+                #print row
+                writer.writerow(value)
+                break                    
+    writer.closewriter()                    
