@@ -10,12 +10,7 @@ from text import processcorpus as pc
 from text import documents
 
 
-malebaby = list()
-femalebaby = list()
-mother = list()
-babies = list()
-lowage = None
-upage = None
+
 
 class Usage(Exception):
     def __init__(self, msg):
@@ -32,7 +27,8 @@ def main(argv=None):
     argv got to be a list else it will be problem when you execute this from the 
     python idle
     '''
-    
+    lowage = None
+    upage = None    
     i = 0
     
     if argv is None:
@@ -67,6 +63,7 @@ def main(argv=None):
             outputToXml(a)
         else:
             print "could not identify"
+    return basestorage
    
 
 if __name__ == "__main__":

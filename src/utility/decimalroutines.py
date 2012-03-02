@@ -19,7 +19,9 @@ class decimalroutines():
         return str(Decimal(value).quantize(scale, self.rounding))
     def setscale(self, value, scale):
         '''
-        given a float value or a Decimal value. Return a string reprsentation of the
+        given a float value or a Decimal value. Return a Decimal reprsentation of the
         float value with rounding 
         '''
         return Decimal(value).quantize(scale, self.rounding)
+
+        

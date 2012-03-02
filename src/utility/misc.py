@@ -5,11 +5,44 @@ Created on Dec 8, 2011
 '''
 from data import  personalrecord
 from decimal import Decimal
+from decimal import Context
 import re
 from writer import csvwriter
 import nltk
 
+def getpopulation( listpr, agelower , offset, attribute ,genericattribute=False):
+        '''
+        get a list of the measurement for attribute.
+        Primarly to be used in csv files
+        '''
+        result = list()
+        for pr in listpr:
+            if genericattribute:
+                if pr.getgenericattribute(attribute) is not None:
+                    result.append(str(pr.getgenericattribute(attribute)))
+                continue             
+            val = pr.getatributeinperiod(attribute, agelower, agelower+offset)
+            if val is not None:
+                result.append(float(val))
+        return result
+    
+def getpopulationasdict( listpr, agelower , offset, attribute ):
+        '''
+        get dictionary of measurement of attribute indexed by the UID
+        '''
+        result = dict()
+        for pr in listpr:
+            val = pr.getatributeinperiod(attribute, agelower, agelower+offset)
+            if val is not None:
+                result[str(pr.getgenericattribute('UID'))] = float(val)
+        return result
+    
 def resetvariable(listpr, attributetoreset, generictype=False):
+    '''
+    Reset a generic type attribute. For a generic type attribute the 
+    argumnet generictype should be set to True
+    If it is time based attribute then this reset in all the time attributes
+    '''
     for p in listpr:
         if generictype:
             p.setgenericattribute(attributetoreset, None)
@@ -18,6 +51,9 @@ def resetvariable(listpr, attributetoreset, generictype=False):
                 timeattr.setattribute(attributetoreset, None)
 
 def resetalltimeattribute(listpr):
+    '''
+    flushes the timebasedattribite structure for all records in list pr
+    '''
     for p in listpr:
         p.__timeattributes = list()
 def getrecordswithvaluegreaterthan(listpr, agelower , ageupper, threshold ,attribute ):
@@ -138,12 +174,11 @@ def writefeedingvalue(filename, listpr,  lowage, upage):
     rows = list()
         
     for pr in listpr:
-        agetype = list()
         feedlist = list()
-        missingVisit = list()
+        visit = list()
         for i in range(int(upage - lowage)):
             feedlist.append('')
-            missingVisit.append(True)
+            visit.append(False)
         for timeattrs in pr.getalltimeattribute():
             age = timeattrs.getage()
             doc = timeattrs.getattribute('DOC')
@@ -156,14 +191,14 @@ def writefeedingvalue(filename, listpr,  lowage, upage):
                 if value is None:
                     value = returnfeedtype(doc.text.get('Eating:'))               
                 if value is not None:
-                    print value
                     if int(age) == len(feedlist):
                         feedlist[int(age) - 1] = value
                     else:
-                        feedlist[int(age)] = value                    
-                    agetype.append(age)                    
-                    
-                missingVisit.insert(int(age), False)
+                        feedlist[int(age)] = value                 
+                if int(age) == len(feedlist):    
+                    visit[int(age) - 1] = True
+                else:
+                    visit[int(age)] = True
                
             #if age.compare(Decimal(lowage)) >= 0 and age.compare(Decimal(upage)) < 0 and value is not None:
              #   row = list()                
@@ -215,12 +250,30 @@ def writefeedingvalue(filename, listpr,  lowage, upage):
         count = 0
         for feed in feedlist:
             row.append(feed)
-            if feed == '':
-                row.append(str(missingVisit[count]))
-            else:
-                row.append('')
+            row.append(str(visit[count]))
             count = count + 1
         if len(row) > 0:
             rows.append(row)
     writer.writerows(rows)                    
-    writer.closewriter()                    
+    writer.closewriter()       
+    
+
+def calculatebmi(listpr):
+    c = Context()
+    for p in listpr:
+        for timeattr in p.getalltimeattribute():
+            if timeattr.getattribute('HEIGHT') is not None  and timeattr.getattribute('WEIGHT') is not None:
+                bmi = c.divide(timeattr.getattribute('HEIGHT') , c.power(timeattr.getattribute('WEIGHT'), Decimal("2")))
+                timeattr.setattribute('BMI',bmi)  
+                                                                                                                                                                                         
+def removetimeattributes(listpr):
+    for p in listpr:
+        newtimeattr = list()
+        for timeattr in p.getalltimeattribute():
+            if timeattr.getnumnumericattributes() > 0 or \
+            timeattr.getnumstringattributes() > 0:
+                newtimeattr.append(timeattr)
+        p.cleartimeattributes()
+        p.getalltimeattribute().extend(newtimeattr)
+    
+                         

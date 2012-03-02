@@ -25,7 +25,35 @@ class csvwriter():
         
     def writerows(self, rows):
         self.writer.writerows(rows)
-        
+    
+    def createcsvdatafromkwargs(self, *args,**kwargs):
+        '''
+        a much improved version creating csv data on fly.
+        *args is list of unique identifier for which we are getting the csv data.
+        these identifiers represents each row.
+        **kwargs: Represents variable number dictionaries of measurements indexed by
+        the unique identifiers
+        '''
+        rows = list()
+        headerrow= list()
+        headerrow.append('ID')
+        for key in kwargs:
+            headerrow.append(str(key))
+        rows.append(headerrow)
+        uids = list()
+        for uid in args:
+            for ids in uid:
+                uids.append(ids)
+        for uid in uids:
+            row = list()
+            row.append(str(uid))
+            for key in kwargs:
+                if (kwargs[key]).get(uid) is not None:
+                    row.append(kwargs[key].get(uid))
+                else:
+                    row.append('')
+            rows.append(row)
+        return rows    
     def createcsvdata(self, listpr,  attributes , lowage , upage):
         rows = list()
         for p in listpr:

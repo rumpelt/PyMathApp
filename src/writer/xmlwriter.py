@@ -18,17 +18,14 @@ dtd = "<?xml version=\"1.1\" encoding=\"utf-8\"?>" + "\n" \
 "<!ATTLIST  PERSON  givenname CDATA  #REQUIRED>" + "\n" \
 "<!ATTLIST  PERSON  middlename CDATA  #IMPLIED>" + "\n" \
 "<!ATTLIST  ATTRIBUTES name CDATA  #REQUIRED>" +"\n" \
-                # following attribute give some information on the name above
-                # for example dob (dateofbirth) attribute can be unix style or in regular date format.
 "<!ATTLIST  ATTRIBUTES type CDATA  #IMPLIED>" + "\n" \
 "<!ATTLIST  TIMEBASEDATTRIBUTE age CDATA  #REQUIRED>" +"\n" \
 "<!ATTLIST  TIMEBASEDATTRIBUTE agetype CDATA  #REQUIRED>"+"\n" \
 "<!ATTLIST  TIMEATTRIBUTES name CDATA  #REQUIRED>" +"\n" \
-# following attribute give some information on the name above
 "<!ATTLIST  TIMEATTRIBUTES type CDATA  #IMPLIED>"+ "\n"\
 "]>"
 
-class recordxmlwriter():
+class xmlwriter():
     def __init__(self, filename , datadefinition = dtd):
         self.filehandle = open(filename,"w")
         self.dtd = datadefinition
@@ -38,6 +35,7 @@ class recordxmlwriter():
         self.filehandle.write("<RECORDS>\n")
         
         for  p in records:
+            
             mrn = p.getgenericattribute('MRN')
             lastname = p.getgenericattribute('LASTNAME')
             givenname = p.getgenericattribute('GIVENNAME')
@@ -51,6 +49,7 @@ class recordxmlwriter():
                 self.filehandle.write("</ATTRIBUTES>\n")
                 
             self.filehandle.write("</GENERICATTRIBUTE>\n")
+            p.sorttimeattributes()
             for timeattr in p.getalltimeattribute():
                 self.filehandle.write("<TIMEBASEDATTRIBUTE age=\""+str(timeattr.getage())+"\""+ \
                             " agetype=\""+timeattr.getagetype()+"\""+">"+"\n")

@@ -90,7 +90,7 @@ class _TimeAttribute(object):
          age: This parameter specify the 
         agetype : This parameter represent the age is in months or years or days.      
     '''
-    def __init__(self, age, agetype):
+    def __init__(self, age, agetype='MONTHS'):
         self.__agetype  = agetype
         self.__age = Decimal(age)
         self.__atributes = dict()
@@ -257,7 +257,7 @@ class PersonalRecord(object):
     def getgenericattribute(self, key):
         return self.__genericAttribute.get(key)
         
-    def gettimeattribute(self, age, agetype):
+    def gettimeattribute(self, age, agetype='MONTHS'):
         '''
         '''
         
@@ -276,7 +276,7 @@ class PersonalRecord(object):
             return result 
         return None
             
-    def getattribute(self, key, lowage, upage, agetype):
+    def getattribute(self, key, lowage, upage, agetype='MONTHS'):
         if self.__genericAttribute.get(key) is not None:
             return self.__genericAttribute.get(key)
         for attr in self.__timeattributes:
@@ -340,7 +340,9 @@ class PersonalRecord(object):
             return -1
         else:
             return 0
-               
+    def sorttimeattributes(self):
+        self.__timeattributes = sorted(self.__timeattributes,cmp=self.comparatorfunction)
+                 
     def addtimeattribute(self, age, agetype, key, value):
         '''
         adds an attibute at a particular age
