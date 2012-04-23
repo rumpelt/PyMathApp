@@ -9,7 +9,8 @@ from decimal import Context
 import re
 from writer import csvwriter
 import nltk
-
+import csv
+import random
 def getpopulation( listpr, agelower , offset, attribute ,genericattribute=False):
         '''
         get a list of the measurement for attribute.
@@ -25,7 +26,27 @@ def getpopulation( listpr, agelower , offset, attribute ,genericattribute=False)
             if val is not None:
                 result.append(float(val))
         return result
-    
+
+
+def getSetOfAttribute( listpr, agelower , offset, attlist):
+        '''
+         returns an M * N array of  values of attributes for each records
+         M: number of records
+         N: number of attributes to fetch
+        '''
+        result = []
+        for pr in listpr:
+            rlist = []
+            rlist.append(str(pr.getgenericattribute('MRN')))
+            for attribute in attlist:
+                val = pr.getatributeinperiod(attribute, agelower, agelower+offset)                
+                if val is not None:
+                    rlist.append(float(val))
+                else:
+                    rlist.append('NA')
+            result.append(rlist)    
+        return result
+        
 def getpopulationasdict( listpr, agelower , offset, attribute ):
         '''
         get dictionary of measurement of attribute indexed by the UID
@@ -36,7 +57,28 @@ def getpopulationasdict( listpr, agelower , offset, attribute ):
             if val is not None:
                 result[str(pr.getgenericattribute('UID'))] = float(val)
         return result
+
+def resetExceptHeightAndWeight(listpr,generictype=False):
+    resetvariable(listpr,'HEADCRF',generictype)
+    resetvariable(listpr,'VISITTYPE',generictype)
+    resetvariable(listpr,'HEIGHTPERCENTILE',generictype)
+    resetvariable(listpr,'HEIGHTZSCORE',generictype)
+    resetvariable(listpr,'WEIGHTZSCORE',generictype)
+    resetvariable(listpr,'WEIGHTPERCENTILE',generictype)
+    resetvariable(listpr,'WEIGHTLENGTHZSCORE',generictype)
+    resetvariable(listpr,'WEIGHTLENGTHPERCENTILE',generictype)
+    resetvariable(listpr,'WEIGHTSTATUREPERCENTILE',generictype)
+    resetvariable(listpr,'WEIGHTSTATUREZSCORE',generictype)
+    resetvariable(listpr,'BMI',generictype)
+    resetvariable(listpr,'BMIZSCORE',generictype)
+    resetvariable(listpr,'BMIPERCENTILE',generictype)
+    resetvariable(listpr,'OBESITY',generictype)
+    resetvariable(listpr,'OBESITYRANK',generictype)
+    resetvariable(listpr,'PONDREALINDEX',generictype)
+    resetvariable(listpr,'SYSTOLICBP',generictype)
+    resetvariable(listpr,'DIASTOLICBP',generictype)
     
+       
 def resetvariable(listpr, attributetoreset, generictype=False):
     '''
     Reset a generic type attribute. For a generic type attribute the 
@@ -49,6 +91,8 @@ def resetvariable(listpr, attributetoreset, generictype=False):
         else:
             for timeattr in p.getalltimeattribute():
                 timeattr.setattribute(attributetoreset, None)
+
+
 
 def resetalltimeattribute(listpr):
     '''
@@ -275,5 +319,101 @@ def removetimeattributes(listpr):
                 newtimeattr.append(timeattr)
         p.cleartimeattributes()
         p.getalltimeattribute().extend(newtimeattr)
+        
+def csvreader(filename ,lowage, upage, 
+              seednum, numelements, skipheader):
+    reader = csv.reader(open(filename,'r'),delimiter=',')
+    ids=[]
+    random.seed(seednum)
+    if skipheader:
+        reader.next()
+    for row in reader:
+        if float(row[1]) >= lowage and float(row[1]) <= upage: 
+            ids.append(row[0])
+    print random.sample(ids, numelements)
+
+def csvappender(files, filetodump, skiheader):
+    '''
+    appends two csv files
+    '''
+    writer = csvwriter.csvwriter(filetodump)
+    rows = list()
+    for fi in files:
+        reader = csv.reader(open(fi,'r'),delimiter=',')
+        if skiheader:
+            reader.next()
+        for row in reader:
+            rows.append(row)
+    writer.writerows(rows)
+    writer.closewriter()
+            
+def yetanotherscript(fileToRead, filetodump):
+    '''
+    operates on csv file to recorde the variable to string representation
+    '''
+    reader = csv.reader(open(fileToRead,'r'),delimiter=',')
+    writer = csvwriter.csvwriter(filetodump)
+    rows = list();
+    for row in reader:
+        thisrow = list()
+        thisrow.append(row[0])
+        if row[1] == '0.0':
+            thisrow.append('0') 
+        elif row[1] == '1.0':
+            thisrow.append('1')
+        else:
+            thisrow.append('NA')
+        if row[2] == '4.0' or row[2] == '3.0':
+            thisrow.append('1')
+        elif row[2] == '1.0' or row[2] == '2.0':
+            thisrow.append('0')
+        else:
+            thisrow.append('NA')
+        rows.append(thisrow)
+    writer.writerows(rows)
+    writer.closewriter()
+      
+def yetanotherscript2(fileToRead, filetodump, skipheader):
+    '''
+    Merges two columns of a csv file to produce a new column
+    '''
+    reader = csv.reader(open(fileToRead,'r'),delimiter=',')
+    writer = csvwriter.csvwriter(filetodump)
+    rows = list();
+    if skipheader:
+        rows.append(reader.next())
+    for row in reader:
+        thisrow = list(row)
+        if row[4] != '':
+            thisrow.append(row[4])
+        elif row[5] != '':
+            thisrow.append(row[5])
+        rows.append(thisrow)
+    writer.writerows(rows)
+    writer.closewriter()
+
+def yetanotherscript3(obesityfile, catfile, filetodump):
+    '''
+    Merges two columns of a csv file to produce a new column
+    '''
+    oreader = csv.reader(open(obesityfile,'r'),delimiter=',')
+    creader = csv.reader(open(catfile,'r'),delimiter=',')
+    writer = csvwriter.csvwriter(filetodump)
+    rows = list()
+    odict = dict()
+    owdict = dict()
+    for row  in oreader:
+        odict[row[0]] = row[1]
+        owdict[row[0]] = row[2]
     
-                         
+    for row in creader:
+        thisrow = list()
+        thisrow.append(row[0])
+        thisrow.append(row[1])
+        thisrow.append(row[2])
+        thisrow.append(odict.get(row[0]))
+        thisrow.append(owdict.get(row[0]))
+        rows.append(thisrow)
+    
+    writer.writerows(rows)
+    writer.closewriter()
