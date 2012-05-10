@@ -321,10 +321,10 @@ def removetimeattributes(listpr):
         p.getalltimeattribute().extend(newtimeattr)
         
 def csvreader(filename ,lowage, upage, 
-              seednum, numelements, skipheader):
+              numelements, skipheader):
     reader = csv.reader(open(filename,'r'),delimiter=',')
     ids=[]
-    random.seed(seednum)
+    random.seed(None)
     if skipheader:
         reader.next()
     for row in reader:
@@ -334,17 +334,23 @@ def csvreader(filename ,lowage, upage,
 
 def csvappender(files, filetodump, skiheader):
     '''
-    appends two csv files
+    appends two or more files csv files.
+    If skip header is set then there is header row in each file
+    and only the header row from the file is copied
     '''
     writer = csvwriter.csvwriter(filetodump)
-    rows = list()
+    #rows = list()
+    firstfile = True
     for fi in files:
         reader = csv.reader(open(fi,'r'),delimiter=',')
-        if skiheader:
+        
+        if skiheader and not firstfile:
             reader.next()
         for row in reader:
-            rows.append(row)
-    writer.writerows(rows)
+            writer.writerow(row)
+            #rows.append(row)
+        firstfile = False
+    #writer.writerows(rows)
     writer.closewriter()
             
 def yetanotherscript(fileToRead, filetodump):
@@ -373,7 +379,8 @@ def yetanotherscript(fileToRead, filetodump):
     writer.writerows(rows)
     writer.closewriter()
       
-def yetanotherscript2(fileToRead, filetodump, skipheader):
+def mergetwocol(fileToRead, filetodump, skipheader, col1, 
+                col2, dumpcolnum):
     '''
     Merges two columns of a csv file to produce a new column
     '''
@@ -384,10 +391,14 @@ def yetanotherscript2(fileToRead, filetodump, skipheader):
         rows.append(reader.next())
     for row in reader:
         thisrow = list(row)
-        if row[4] != '':
-            thisrow.append(row[4])
-        elif row[5] != '':
-            thisrow.append(row[5])
+        length = len(thisrow)
+        while length <= dumpcolnum-1:
+            thisrow.append('')
+            length = length + 1
+        if row[col1-1] != '':
+            thisrow.insert(dumpcolnum-1, row[col1-1])
+        elif row[col2-1] != '':
+            thisrow.insert(dumpcolnum-1,row[col2-1])
         rows.append(thisrow)
     writer.writerows(rows)
     writer.closewriter()
